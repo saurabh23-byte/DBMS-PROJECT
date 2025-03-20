@@ -1,1 +1,87 @@
 
+CREATE TABLE Customers (
+    ID INT AUTO_INCREMENT PRIMARY KEY,
+    Name VARCHAR(255) NOT NULL,
+    Contact_Info VARCHAR(255) NOT NULL,
+    Preferences TEXT,
+    Status ENUM('Active', 'Inactive') DEFAULT 'Active'
+);
+
+CREATE TABLE Interactions (
+    ID INT AUTO_INCREMENT PRIMARY KEY,
+    CustomerID INT,
+    Date DATETIME DEFAULT CURRENT_TIMESTAMP,
+    Notes TEXT,
+    FOREIGN KEY (CustomerID) REFERENCES Customers(ID) ON DELETE CASCADE
+);
+
+CREATE TABLE Sales (
+    ID INT AUTO_INCREMENT PRIMARY KEY,
+    ProductID INT,
+    CustomerID INT,
+    Amount DECIMAL(10,2),
+    Status ENUM('Pending', 'Completed', 'Cancelled') DEFAULT 'Pending',
+    FOREIGN KEY (CustomerID) REFERENCES Customers(ID) ON DELETE CASCADE
+);
+
+CREATE TABLE SalesTeams (
+    ID INT AUTO_INCREMENT PRIMARY KEY,
+    Name VARCHAR(255) NOT NULL,
+    Email VARCHAR(255) UNIQUE NOT NULL
+);
+
+CREATE TABLE Admins (
+    ID INT AUTO_INCREMENT PRIMARY KEY,
+    Name VARCHAR(255) NOT NULL,
+    Email VARCHAR(255) UNIQUE NOT NULL
+);
+
+CREATE TABLE Leads (
+    ID INT AUTO_INCREMENT PRIMARY KEY,
+    CustomerID INT,
+    SalesTeamID INT,
+    Status ENUM('Open', 'In Progress', 'Closed') DEFAULT 'Open',
+    FOREIGN KEY (CustomerID) REFERENCES Customers(ID) ON DELETE CASCADE,
+    FOREIGN KEY (SalesTeamID) REFERENCES SalesTeams(ID) ON DELETE CASCADE
+);
+
+
+
+
+
+
+
+
+
+
+ ## ENTER THE DATA FOR THIS CODE
+INSERT INTO Customers (Name, Contact_Info, Preferences, Status) 
+VALUES ('John Doe', 'johndoe@gmail.com', 'Interested in Laptops', 'Active');
+
+INSERT INTO SalesTeams (Name, Email) 
+VALUES ('Team A', 'teama@crm.com');
+
+INSERT INTO Admins (Name, Email) 
+VALUES ('Admin 1', 'admin@crm.com');
+
+INSERT INTO Leads (CustomerID, SalesTeamID, Status) 
+VALUES (1, 1, 'Open');
+
+INSERT INTO Interactions (CustomerID, Notes) 
+VALUES (1, 'Followed up with John Doe via email');
+
+INSERT INTO Sales (ProductID, CustomerID, Amount, Status) 
+VALUES (101, 1, 500.00, 'Completed');
+
+
+
+
+
+## ADD SCORE FOR OPEN CUSTOMERS 
+
+
+UPDATE Leads
+SET Score = 
+    (SELECT COUNT(*) FROM Interactions WHERE Interactions.CustomerID = Leads.CustomerID) * 10
+    + (SELECT COUNT(*) FROM Sales WHERE Sales.CustomerID = Leads.CustomerID) * 20
+WHERE Status = 'Open';
